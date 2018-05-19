@@ -4,9 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+nba-py = "==0.1a2"
+pandas = "*"
 
 [dev-packages]
-nba-py = "*"
 
 [requires]
 python_version = "3.6"
