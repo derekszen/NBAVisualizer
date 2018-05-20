@@ -4,8 +4,13 @@ import pprint
 import nba_py.player
 import nba_py.team
 import requests
-import pandas
+import pandas as pd
+from plotly import __version__
+from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
+from plotly.graph_objs import Scatter, Figure, Layout
 
+#Print plotly version
+print __version__
 
 
 rockets_id = 1610612745
@@ -32,8 +37,8 @@ def main(qux, foo=1, bar=2):
     pp = pprint.PrettyPrinter(indent=4)
     name = foo.split()
     playerID = nba_py.player.get_player(name[0], last_name = name[-1])
-    rockets_shots = nba_py.team.TeamShotTracking(rockets_id, last_n_games = 82).dribble_shooting()
-    pp.pprint(rockets_shots)
+    rockets_shots = nba_py.team.TeamShotTracking(rockets_id, last_n_games = 82)
+    pp.pprint(rockets_shots.dribble_shooting())
     player_playoff_performance = get_player_playoff_performance(playerID)
     player_reg_performance = get_player_regular_performance(playerID)
     print("---------Playoff player---------")
@@ -42,7 +47,20 @@ def main(qux, foo=1, bar=2):
     print("---------Regular Season player---------")
     pp.pprint(player_reg_performance)
 
+    # How many open shots?
+    print("---------Total Open team_shots---------")
+    defended = rockets_shots.closest_defender_shooting()
+    # Create new column
+    defended['OPEN'] = defended['CLOSE_DEF_DIST_RANGE'].map(lambda x: True if 'Open' in x else False)
+    open_shots = defended.loc[defended['OPEN'] == True, 'FGA'].sum()
+    print('Open shots: %s', open_shots)
+
+    covered_shots = defended['FGA'].sum() - open_shots
+    #covered_shots = defended.loc[defended['OPEN'] == False, 'FGA'].sum()
+    print('Covered shots: %s', covered_shots)
+
     print("---------Playoff-reg diff score-diff---------")
+
 
     return
 

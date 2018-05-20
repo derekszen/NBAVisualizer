@@ -4,16 +4,24 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+Figure	.\3pt.py	/^from plotly.graph_objs import Scatter, Figure, Layout$/;"	i
+Layout	.\3pt.py	/^from plotly.graph_objs import Scatter, Figure, Layout$/;"	i
+Scatter	.\3pt.py	/^from plotly.graph_objs import Scatter, Figure, Layout$/;"	i
+__version__	.\3pt.py	/^from plotly import __version__$/;"	i
 _cli	.\3pt.py	/^def _cli():$/;"	f
 argparse	.\3pt.py	/^import argparse$/;"	i
+download_plotlyjs	.\3pt.py	/^from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot$/;"	i
 get_player_playoff_performance	.\3pt.py	/^def get_player_playoff_performance(playerid):$/;"	f
 get_player_regular_performance	.\3pt.py	/^def get_player_regular_performance(playerid):$/;"	f
+init_notebook_mode	.\3pt.py	/^from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot$/;"	i
+iplot	.\3pt.py	/^from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot$/;"	i
 main	.\3pt.py	/^def main(qux, foo=1, bar=2):$/;"	f
 nba_py	.\3pt.py	/^import nba_py.player$/;"	i
 nba_py	.\3pt.py	/^import nba_py.team$/;"	i
-pandas	.\3pt.py	/^import pandas$/;"	i
+pd	.\3pt.py	/^import pandas as pd$/;"	i
 player	.\3pt.py	/^import nba_py.player$/;"	i
 player_stats	.\3pt.py	/^player_stats = {'name':None,'avg_dribbles':None,'avg_touch_time':None,'avg_shot_distance':None,'avg_defender_distance':None}$/;"	v
+plot	.\3pt.py	/^from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot$/;"	i
 pprint	.\3pt.py	/^import pprint$/;"	i
 reduce	.\3pt.py	/^from functools import reduce$/;"	i
 requests	.\3pt.py	/^import requests$/;"	i

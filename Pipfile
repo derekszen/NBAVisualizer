@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 nba-py = "==0.1a2"
 pandas = "*"
+plotly = "*"
 
 [dev-packages]
 
