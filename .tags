@@ -11,6 +11,7 @@ __version__	.\3pt.py	/^from plotly import __version__$/;"	i
 _cli	.\3pt.py	/^def _cli():$/;"	f
 argparse	.\3pt.py	/^import argparse$/;"	i
 download_plotlyjs	.\3pt.py	/^from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot$/;"	i
+get_custom_boxscore	.\3pt.py	/^def get_custom_boxscore(roster_id):$/;"	f
 get_eFG	.\3pt.py	/^def get_eFG(playerid, season = 'all'):$/;"	f
 get_player_playoff_performance	.\3pt.py	/^def get_player_playoff_performance(playerid):$/;"	f
 get_player_regular_performance	.\3pt.py	/^def get_player_regular_performance(playerid):$/;"	f

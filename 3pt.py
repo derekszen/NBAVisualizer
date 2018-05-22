@@ -37,6 +37,60 @@ def get_eFG(playerid, season = 'all'):
     efG = (shotTracking['FGM'].sum() + (0.5 * shotTracking['FG3M'].sum()))/shotTracking['FGA'].sum()
     return eFG
 
+def get_custom_boxscore(roster_id):
+    game_logs  = nba_py.team.TeamGameLogs(roster_id)
+
+    df_game_logs = game_logs.info()
+
+    df_game_logs['GAME_DATE'] =  pd.to_datetime(df_game_logs['GAME_DATE'])
+    df_game_logs['days_rest'] =  df_game_logs['GAME_DATE'] - df_game_logs['GAME_DATE'].shift(-1)
+    df_game_logs['days_rest'] =  df_game_logs['days_rest'].astype('timedelta64[D]')
+
+    ##Just like before, that should get us the gamelogs we need and the rest days column
+
+    ##Now to loop through the list of dates for our other stats
+
+    ##Build up a  dataframe of our custom stats and join that to the gamelogs instead of joining  each individual row
+
+    df_all =pd.DataFrame() ##blank dataframe
+
+    dates = df_game_logs['GAME_DATE']
+
+    for date in dates:
+
+        game_info = nba_py.team.TeamPassTracking(roster_id,  date_from=date, date_to=date).passes_made()
+        game_info['GAME_DATE'] = date ## We need to append the date to this so we can  join back
+
+        temp_df = game_info.groupby(['GAME_DATE']).sum()
+        temp_df.reset_index(level =  0,  inplace =  True)
+
+        ##now to get the shot info. For the most part, we're just reusing code we've already written
+        open_info = nba_py.team.TeamShotTracking(roster_id,date_from =date,  date_to =  date).closest_defender_shooting()
+        open_info['OPEN'] = open_info['CLOSE_DEF_DIST_RANGE'].map(lambda x: True if 'Open' in x else False)
+
+        temp_df['OPEN_SHOTS'] = open_info.loc[open_info['OPEN'] == True, 'FGA'].sum()
+        temp_df['COVERED_SHOTS'] = open_info.loc[open_info['OPEN'] == False, 'FGA'].sum()
+
+        if open_info.loc[open_info['OPEN']== True, 'FGA'].sum() > 0:
+            temp_df['OPEN_EFG']= (open_info.loc[open_info['OPEN']== True, 'FGM'].sum() + (.5 * open_info.loc[open_info['OPEN']== True, 'FG3M'].sum()))/(open_info.loc[open_info['OPEN']== True, 'FGA'].sum())
+        else:
+            temp_df['OPEN_EFG'] = 0
+
+        if open_info.loc[open_info['OPEN']== False, 'FGA'].sum() > 0:
+             temp_df['COVER_EFG']= (open_info.loc[open_info['OPEN']== False, 'FGM'].sum() + (.5 * open_info.loc[open_info['OPEN']== False, 'FG3M'].sum()))/(open_info.loc[open_info['OPEN']== False, 'FGA'].sum())
+        else:
+            temp_df['COVER_EFG'] = 0
+        ##append this to our bigger dataframe
+
+        df_all = df_all.append(temp_df)
+
+    df_boxscore =  pd.merge(df_game_logs, df_all[['PASS', 'FG2M', 'FG2_PCT', 'OPEN_SHOTS','COVERED_SHOTS', 'OPEN_EFG', 'COVER_EFG']], how = 'left', left_on = df_game_logs['GAME_DATE'], right_on = df_all['GAME_DATE'])
+    df_boxscore['PASS_ASSIST'] = df_boxscore['PASS'] /  df_boxscore['AST']
+    df_boxscore['RESULT'] = df_boxscore['WL'].map(lambda x: 1 if 'W' in x else 0 )
+
+    return df_boxscore
+
+
 def main(qux, foo=1, bar=2):
     print("Foo: {}\nBar: {}\nQux: {}".format(foo, bar, qux))
     pp = pprint.PrettyPrinter(indent=4)
@@ -55,45 +109,8 @@ def main(qux, foo=1, bar=2):
 
     # How many open shots?
     print("---------Total Open team_shots---------")
-    # Game log
-
-    team_log = nba_py.team.TeamGameLogs(rockets_id)
-    df_game_log = team_log.info()
-    df_game_log['GAME_DATE'] = pd.to_datetime(df_game_log['GAME_DATE'])  ##converting the columns datatype
-    df_game_log['DAYS_REST'] = df_game_log['GAME_DATE'] - df_game_log['GAME_DATE'].shift(-1)
-    df_game_log['DAYS_REST'] =  df_game_log['DAYS_REST'].astype('timedelta64[D]')
-    dates = df_game_log['GAME_DATE']
-
-    print('number_of_rockets_games: %d', len(dates))
-
-    # df_sum
-    # all game_info
-    game_info = team.TeamPassTracking(rockets_id, date_from = date, date_to = date).passes_made()
-    game_info['GAME_DATE'] = date
-
-    df_sum = game_info.groupby(['GAME_DATE']).sum()
-    defended = rockets_shots.closest_defender_shooting()
-    # Create new column
-    defended['OPEN'] = defended['CLOSE_DEF_DIST_RANGE'].map(lambda x: True if 'Open' in x else False)
-    # team open_efg and covered_efg
-    df_sum['OPEN_SHOTS'] = defended.loc(defended['OPEN'] == True, 'FGA').sum()
-    df_sum['OPEN_EFG'] = (defended.loc(defended['OPEN'] == True, 'FGM').sum() + (0.5 * defended.loc(defended['OPEN'] == True, 'FG3M').sum()))/defended.loc(defended['OPEN'] == True, 'FGA').sum()
-
-    df_sum['COVERED_EFG'] = (defended.loc(defended['OPEN'] == False, 'FGM').sum() + (0.5 *
-                               defended.loc(defended['OPEN'] == False, 'FG3M').sum()))/defended.loc(defended['OPEN'] == False, 'FGA').sum()
-
-    # Custom boxscore
-    custom_boxscore  =  pd.merge(df_game_log, df_sum[['PASS', 'FG2M', 'OPEN_SHOTS' ,
-        'OPEN_EFG', 'COVERED_EFG']], how = 'left', left_on = df_game_log['GAME_DATE'],
-        right_on =  df_sum['GAME_DATE'])
-
-    open_shots = defended.loc[defended['OPEN'] == True, 'FGA'].sum()
-    print('Open shots: %d', open_shots)
-
-    covered_shots = defended['FGA'].sum() - open_shots
-    #covered_shots = defended.loc[defended['OPEN'] == False, 'FGA'].sum()
-    print('Covered shots: %d', covered_shots)
-
+    custom_boxscore = get_custom_boxscore(rockets_id)
+    custom_boxscore.head()
     print("---------Playoff-reg diff shooting---------")
 
 
